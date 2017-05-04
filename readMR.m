@@ -1,4 +1,4 @@
-function c=readMR(varargin)
+function mrts=readMR(varargin)
  %% READMR ret
 
  scriptdir=fileparts(mfilename('fullpath'));
@@ -18,6 +18,8 @@ function c=readMR(varargin)
 
  end
  
+
+ 
  %% find all roistat files
  files=strsplit(ls(patt),'\n');
  
@@ -25,18 +27,44 @@ function c=readMR(varargin)
  fidxs=cellfun(@(f) ~isempty(f) && exist(f,'file'), files);
  files=files(fidxs);
  
+ % allocate
+ mrts(length(files))=struct('id',0,'vdate',0,'ts',[],'age',[]);
+ 
  %% go through files and read in data
  for fi=1:length(files)
      f=files{fi};
      if isempty(f) || ~exist(f,'file'), continue, end
      
-     [ididx,vdateidx]=regexp(f,'(\d{5})_(\d{8})');
-     id=f(ididx:ididx+4);
-     vdate=f(vdateidx:vdateidx+7);
-     c(fi).data=load(f);
-     c(fi).id=id;
-     c(fi).vdate=vdate;
+     % parse out id from file name
+     [startofmatch,endofmatchidx]=regexp(f,'(\d{5})_(\d{8})');
+     id=f(startofmatch:startofmatch+4);
+     vdate=f(endofmatchidx-7:endofmatchidx);
+     
+     % add to struct
+     mrts(fi).ts=load(f);
+     mrts(fi).id=id;
+     mrts(fi).vdate=vdate;
+     
  end
  
+ %% add age if we can
+ agetxt=fullfile(scriptdir,'txt','subj_date_age.txt');
+ ages=[0 0 0];
+ 
+ if exist(agetxt,'file')
+     ages=load(agetxt); 
+     % go through each visit
+     for ci=1:length(mrts)
+         % pull otu id and date
+         id=mrts(ci).id; vdate=mrts(ci).vdate;
+         % try to match in agetxt
+         ageidx=ages(:,1)==str2double(id) & ages(:,2)==str2double(vdate);
+         age=ages(ageidx,3);
+         if isempty(age); age=NaN; end
+         % add what we find to the struct
+         mrts(ci).age=age;
+     end
+     
+ end
  
 end
