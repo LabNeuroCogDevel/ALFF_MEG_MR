@@ -52,7 +52,10 @@ function out=spectrumMR(mrts)
  d = array2table(roitsbplog,'VariableNames',labels);
  corrplot(d)
  
-
+ %% with pwelch
+ [ap, fp] = powerfft(mrts(1).ts(:,1),1);
+ [aw fw]=pwelch((mrts(1).ts(:,1)-nanmean(mrts(1).ts(:,1))),numel(mrts(1).ts(:,1)),[],fp,1);
+ hold off; plot(fp,log10(ap)); hold on; plot(fp,log10(aw))
 
 %  
 end
