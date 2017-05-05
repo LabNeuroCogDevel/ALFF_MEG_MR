@@ -55,3 +55,32 @@ legend({'fft','welch'},'Orientation','vert','Location','NorthEast')
 
 % save output
 saveas(allfig,'img/welch_vs_fft.png')
+
+
+
+
+ %% plotting MR data
+ % get freq by redoing just one
+ [~, freq ] = powerfft( tsmat(:,1,1), Fs);
+ 
+ % all rois for subj 63
+ plot(freq,log10(out(:,:,63)))
+ % all subjs maen for roi 7
+ plot(freq,mean(squeeze(log10(out(:,7,:))),2))
+ 
+ % network roi labels
+ % https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3174820/figure/F12/
+ labels={'Visual','Somatomotor','DorsalAtt','VentralAtt',...
+         'limbic','Frontoparietal','Default'};
+ 
+ % freq range we care about .01-.08
+ bandpassidx = freq>=.01 & freq<=.08;    
+     
+ % collapse all subjects into an roi time series
+ roits=mean(out,3);
+ % rescale and only look at bandpass range
+ roitsbplog = 10*log10(roits(bandpassidx,:));
+ % make a table so corrplot has labels
+ d = array2table(roitsbplog,'VariableNames',labels);
+ corrplot(d)
+ 
