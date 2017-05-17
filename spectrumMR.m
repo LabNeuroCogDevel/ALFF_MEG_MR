@@ -35,3 +35,4 @@ function out=spectrumMR(mrts,varargin)
  
 
 end
+

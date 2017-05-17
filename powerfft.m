@@ -2,7 +2,7 @@ function [psdx,freq] = powerfft(x,Fs)
  % Code from
  % http://www.mathworks.com/help/signal/ug/power-spectral-density-estimates-using-fft.html
  
- x = x -nanmean(x);       % demean (DM+FC 20170504)
+ x = x - nanmean(x);       % demean (DM+FC 20170504)
  N = length(x);
  xdft = fft(x);           % fourier
  xdft = xdft(1:N/2+1);    % only need power estimates for the positive, first half 
@@ -21,3 +21,7 @@ function [psdx,freq] = powerfft(x,Fs)
  freq = 0:Fs/length(x):Fs/2;
 end
 
+% octave doesn't have nanmean
+function m=nanmean(x)
+ m=mean( x(~isna(x) & ~isnan(x) ));
+end
