@@ -1,4 +1,4 @@
-function SubjectRelPower = spectrumMEG( MEGTimeSeries )
+function bilat_winavg = spectrumMEG( MEGTimeSeries )
 %SPECTRUMMEG  calcualte power spectrum of MEG data (pwelch, copied from SM 2016)
 % calculate power spectrum over intervals of bin_time for total_time (assuming sampfreq)
 % return matrix: roi x windownumber x freq x Sub
@@ -18,9 +18,8 @@ for Sub = 1:size(MEGTimeSeries,1)
 
     % subject should have at least as many samples as we want to inspect
     if subj_samples < total_samples
-      warning('subj no %d has too few samples (%d)',Sub,subj_samples)
-      %Warning: subj no 39 has too few samples (56250) 
-
+      % subj 39 has too few sampesl 56250 != 65000
+      warning(sprintf('subj (%d) has too few samples %d != %d\n',Sub,subj_samples,total_samples))
       % use only full bins
       total_used_samples=floor(subj_samples/samples_in_bin)*samples_in_bin;
     end
@@ -42,7 +41,13 @@ for Sub = 1:size(MEGTimeSeries,1)
             % OUTPIT
             %  pxx= power spectrum density estimate
             %  f  = frequences sampled
-            [pxx f] = pwelch(x,[],[],[2:1:100],sampfreq);
+
+            % matlab : TODO -- test implementation
+            % [pxx f] = pwelch(x,[],[],[2:1:100],sampfreq);
+
+            % octave, Nfft smaller silently ignored
+            [pxx f] = pwelch(x,[],.5,0,sampfreq,'half');
+            % x,window,overlap,Nfft,Fs,range,plot_type,detrend,sloppy
             
             %  -- WF 20170507 --
             % this does nothing?
@@ -63,5 +68,22 @@ for Sub = 1:size(MEGTimeSeries,1)
     end
 end
 
+%% collapse data
+% average over all power windows
+winavg =squeeze(mean(SubjectRelPower,2));
+% average L/R rois to get bilateral rois
+% pairs are like 1,2  3,4  etc
+bilat_winavg = ( winavg(1:2:13,:,:) + winavg(2:2:14,:,:) )/2;
+
+% %CONFIRM ROI is every other
+% figure; hold on;
+% c='rgbcmyk';
+% for i=1:7
+%  plot(bilat(i,:,3),c(i));
+%  bidx=(i-1)*2 + [1:2];
+%  plot(m(bidx,:,3)','--','color',c(i));
+% end
+
 end
+
 
