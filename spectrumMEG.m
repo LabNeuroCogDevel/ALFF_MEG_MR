@@ -7,7 +7,7 @@ sampfreq      = 250; % per second, "raw" data
 bin_time      = 10;  % seconds, break up the data into 10s bins
 total_time    = 260; % seconds, dont use more than 260s of data
 
-total_samples = max_time*sampfreq; % 65000
+total_samples = total_time*sampfreq; % 65000
 samples_in_bin=bin_time*sampfreq;  %  2500
 
 for Sub = 1:size(MEGTimeSeries,1)
@@ -18,7 +18,9 @@ for Sub = 1:size(MEGTimeSeries,1)
 
     % subject should have at least as many samples as we want to inspect
     if subj_samples < total_samples
-      warning('subj has too few samples == ',allsubj_samples)
+      warning('subj no %d has too few samples (%d)',Sub,subj_samples)
+      %Warning: subj no 39 has too few samples (56250) 
+
       % use only full bins
       total_used_samples=floor(subj_samples/samples_in_bin)*samples_in_bin;
     end
