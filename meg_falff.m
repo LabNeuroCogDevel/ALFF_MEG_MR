@@ -1,6 +1,6 @@
 % SM WF 20170612
 
-function meg_falf_out = meg_falff(megp,meg_f)
+function meg_falf_out = meg_falff(megp,meg_f,fun)
 %% MEG_FALFF -- calculate FALFF for meg data at 7 predefined freq bands
 % frac amp low freq flux
 
@@ -17,13 +17,14 @@ function meg_falf_out = meg_falff(megp,meg_f)
   nmegfreq = size(megfalffreq,1);
   meg_falf_out = zeros(1,nmegfreq);
 
-  meg_totalpower=sum(megp);
+  meg_totalpower=fun(megp);
+
   for fi = 1:nmegfreq
     low  = megfalffreq(fi,1);
     high = megfalffreq(fi,2);
     meg_falf_idx = meg_f > low & meg_f < high;
     %range(find(meg_falf_idx))
-    meg_falf_out(fi) = sum(megp(meg_falf_idx))/meg_totalpower;
+    meg_falf_out(fi) = nansum(megp(meg_falf_idx))/meg_totalpower;
   end
 
 end

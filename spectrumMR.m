@@ -1,4 +1,4 @@
-function out=spectrumMR(mrts,varargin)
+function [out,f]=spectrumMR(mrts,varargin)
  %% SPECTRUMMR -- spectrum from MR time series data strcture
  % mrts=readMR()
  % method is either fft or pwelch
@@ -26,7 +26,8 @@ function out=spectrumMR(mrts,varargin)
  for s=1:Nsubj
      if isempty(varargin) || strncmp(varargin{1}, 'fft',3)
          for r=1:Nroi
-             out(:,r,s) = powerfft(tsmat(:,r,s),Fs )';
+             [res, f] = powerfft(tsmat(:,r,s),Fs );
+             out(:,r,s) = res';
          end
      else
         out(:,:,s)=  pwelch(tsmat(:,:,s),[],[],freqs,Fs);

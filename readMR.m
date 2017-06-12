@@ -21,11 +21,17 @@ function mrts=readMR(varargin)
 
  
  %% find all roistat files
- files=strsplit(ls(patt),'\n');
+ % files=strsplit(ls(patt),'\n');
+ % sometimes there are 3 per row! this deals with that
+ files= cellfun(@(x) strsplit(x,' '), strsplit(ls(patt),'\n'),'UniformOutput',0);
+ % unnest
+ files=[files{:}];
  
  %%  eliminate bad files (primarily, the last '')
  fidxs=cellfun(@(f) ~isempty(f) && exist(f,'file'), files);
  files=files(fidxs);
+
+ if( lenght(files) < 2 ), error('too few subjects'); end
  
  % allocate
  mrts(length(files))=struct('id',0,'vdate',0,'ts',[],'age',[]);
@@ -55,7 +61,7 @@ function mrts=readMR(varargin)
      ages=load(agetxt); 
      % go through each visit
      for ci=1:length(mrts)
-         % pull otu id and date
+         % pull out id and date
          id=mrts(ci).id; vdate=mrts(ci).vdate;
          % try to match in agetxt
          ageidx=ages(:,1)==str2double(id) & ages(:,2)==str2double(vdate);
