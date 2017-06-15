@@ -6,6 +6,8 @@ function [psdx,freq] = powerfft(x,Fs)
  % http://www.mathworks.com/help/signal/ug/power-spectral-density-estimates-using-fft.html
  
  x = x - nanmean(x);       % demean (DM+FC 20170504)
+ % detrend
+ x = detrend(x,'linear');
  N = length(x);
  xdft = fft(x);           % fourier
  poshalflen=N/2+1;

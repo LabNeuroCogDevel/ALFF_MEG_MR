@@ -33,8 +33,8 @@ MRfft  = MRfft_org (:,:,mrsubjidx(mrkeep) );
 % make time by roi by subj
 MEGfft_matchdim  = permute( MEGfft, [2,1,3] );
 
- MRfft_withinSubjZ = zscore_fft(MRfft);
-MEGfft_withinSubjZ = zscore_fft(MEGfft_matchdim);
+ MRfft_withinSubjnorm = meannorm_fft(MRfft);
+MEGfft_withinSubjnorm = meannorm_fft(MEGfft_matchdim);
 
 
 
@@ -75,18 +75,27 @@ mralf_all=zeros(nsubj,nroi,nmrbands);
 mrfalf_all=mralf_all;
 
 mr_f_idx = mr_freq > .01 & mr_freq < .1;
+
+mrdata= MRfft;
+megdata=MEGfft_matchdim;
+%mrdata  = MRfft_withinSubjnorm;
+%megdata = MEGfft_withinSubjnorm;
+
+%% cacluate alff and falff
 for subji = 1:nsubj
   for roii = 1:nroi
-    % alff
-    mralf(subji,roii)       =  sum(MRfft(mr_f_idx,roii,subji));
-    mrfalf(subji,roii)      =  sum(MRfft(mr_f_idx,roii,subji))/sum(MRfft(:,roii,subji));
+    % MR 
+    mralf(subji,roii)       =  sum(mrdata(mr_f_idx,roii,subji));
+    mrfalf(subji,roii)      =  sum(mrdata(mr_f_idx,roii,subji))/sum(mrdata(:,roii,subji));
 
-    megalf(subji,roii,:)    =  calc_alff( MEGfft(roii,:,subji), meg_freq, @(x) 1, meg_bands );
-    megfalf(subji,roii,:)   =  calc_alff( MEGfft(roii,:,subji), meg_freq, @nansum,meg_bands );
+    % look at _all_ mr frequeinces not just .01-.1
+    mralf_all(subji,roii,:) =  calc_alff( mrdata(:,roii,subji), mr_freq,  @(x) 1, mrbands );
+    mrfalf_all(subji,roii,:)=  calc_alff( mrdata(:,roii,subji), mr_freq, @nansum, mrbands );
 
+    % MEG
+    megalf(subji,roii,:)    =  calc_alff( megdata(:,roii,subji), meg_freq, @(x) 1, meg_bands );
+    megfalf(subji,roii,:)   =  calc_alff( megdata(:,roii,subji), meg_freq, @nansum,meg_bands );
 
-    mralf_all(subji,roii,:) =  calc_alff( MRfft(:,roii,subji), mr_freq,  @(x) 1, mrbands );
-    mrfalf_all(subji,roii,:)=  calc_alff( MRfft(:,roii,subji), mr_freq, @nansum, mrbands );
   end
 end
 
@@ -110,15 +119,17 @@ corr_falf= zeros(nroi,nbands);
 corr_meg_mr_alf=zeros(nroi,nbands,nmrbands);
 corr_meg_mr_falf=zeros(nroi,nbands,nmrbands);
 
+%% Corr
+% for each roi, each meg band and each mr band, calclualte corr across subjects
 for roii=1:nroi
  for bi = 1:nbands
   corr_alf(roii,bi)  = corr( mralf(:,roii), megalf(:,roii,bi) );
   corr_falf(roii,bi) = corr( mrfalf(:,roii), megfalf(:,roii,bi) );
 
-  for mrbi=1:nmrbands
-    corr_meg_mr_alf(roii,bi,mrbi)  = corr( mralf_all(:,roii,mrbi), megalf(:,roii,bi) );
-    corr_meg_mr_falf(roii,bi,mrbi) = corr( mrfalf_all(:,roii,mrbi), megfalf(:,roii,bi) );
-  end
+    for mrbi=1:nmrbands
+      corr_meg_mr_alf(roii,bi,mrbi)  = corr( mralf_all(:,roii,mrbi), megalf(:,roii,bi) );
+      corr_meg_mr_falf(roii,bi,mrbi) = corr( mrfalf_all(:,roii,mrbi), megfalf(:,roii,bi) );
+    end
 
  end
 end
