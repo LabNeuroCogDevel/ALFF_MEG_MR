@@ -31,7 +31,7 @@ function mrts=readMR(varargin)
  fidxs=cellfun(@(f) ~isempty(f) && exist(f,'file'), files);
  files=files(fidxs);
 
- if( lenght(files) < 2 ), error('too few subjects'); end
+ if( length(files) < 2 ), error('too few subjects'); end
  
  % allocate
  mrts(length(files))=struct('id',0,'vdate',0,'ts',[],'age',[]);
