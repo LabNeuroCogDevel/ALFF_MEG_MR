@@ -50,6 +50,7 @@ function mrts=readMR(varargin)
      mrts(fi).ts=load(f);
      mrts(fi).id=id;
      mrts(fi).vdate=vdate;
+     mrts(fi).file=f;
      
  end
  

@@ -4,7 +4,7 @@ function [bilat_winavg, f] = spectrumMEG( MEGTimeSeries )
 % return matrix: roi x windownumber x freq x Sub
 
 sampfreq      = 250; % per second, "raw" data
-bin_time      = 10;  % seconds, break up the data into 10s bins
+%bin_time      = 10;  % seconds, break up the data into 10s bins -- have image of this, but cannot estimate low freq (b/c powerspectrum has fewer samples)
 bin_time      = 260;  % seconds, use all the data
 total_time    = 260; % seconds, dont use more than 260s of data
 

@@ -57,7 +57,6 @@ yes | preprocessFunctional \
  -custom_slice_times /Volumes/Phillips/MMY4_Switch/scripts/sliceTimings.1D \
  -fm_cfg clock \
  -4d_slice_motion -tr 1 \
- -4d_slice_motion \
  -no_hp \
  -nuisance_compute 6motion,rx,ry,rz,tx,ty,tz,wm,csf,gs,d6motion,drx,dry,drz,dtx,dty,dtz,dwm,dcsf,dgs
 
