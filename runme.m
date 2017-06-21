@@ -184,6 +184,8 @@ MEGfft_relpower = scottnorm_fft(MEGfft_matchdim,meg_bands,meg_freq);
 
 
 
+
+%% ORIGINAL plotting
 % bandlabels={'uslow','slow','delta','theta','alpha','beta','gamma'};
 % bandlabels=strsplit(sprintf('%.02e-%.02e ',meg_bands),' ');
 bandlabels=cellfun(@(x) sprintf('%02.02f',x) ,num2cell(mean(meg_bands,2)),'UniformOutput',0);
@@ -206,38 +208,9 @@ mrlabelidxs=1:length(mrbandlabels);
 
 looplabel={ 'corr_meg_mr_hpfalf', 'corr_meg_mr_alf','corr_meg_mr_falf'};
 loopdata = cellfun(@(x) evalin('base',x), looplabel,'UniformOutput',0);
-for dataidx = 1:length(looplabel); 
-  corrdata=loopdata{dataidx};
-  figure
-  %corrdata=corr_meg_mr_alf; % we like this one
-  %title('alf');
-  
-  
-  for i=1:nroi
-   subplot(4,2,i)
-   alfcormat = squeeze(corrdata(i,:,:));
-   MRvsMeg = permute(alfcormat,[2,1]);
-   imagesc( MRvsMeg );
-   colormap('jet'); colorbar;caxis([-.2 .2])
-   set(gca,'ytick',mrlabelidxs,'yticklabel',mrbandlabels(mrlabelidxs))
-   set(gca,'xticklabelrotation',90,'xtick',labelidxs,'xticklabel',bandlabels(labelidxs+1))
-   title(sprintf('%s',roilabels{i}))
-   %a=rectangle('Position',[0,2,44,4]);
-   %set(a,'LineWidth',3,'EdgeColor','black')
-  
-   % zscore
-   % MRvsMeg for avg below
-  end
-  
-  subplot(4,2,8)
-  alfcormat = squeeze(mean(corrdata,1));
-  imagesc( permute(alfcormat,[2,1]) );
-  colormap('jet'); colorbar;caxis([-.2 .2])
-  set(gca,'ytick',mrlabelidxs,'yticklabel',mrbandlabels(mrlabelidxs))
-  set(gca,'xticklabelrotation',90,'xtick',labelidxs,'xticklabel',bandlabels(labelidxs+1))
-  title('meg vs mr alf average')
-  suptitle(looplabel{dataidx}); % super label from bioinfo toolbox
 
-  %a=rectangle('Position',[0,2,44,4])
-  %set(a,'LineWidth',3,'EdgeColor','black')
-end
+plot_band_band_roi( loopdata, looplabel, labelidxs,bandlabels, mrlabelidxs,mrbandlabels );
+
+plot_band_band_roi( {corr_meg_mr_falf}, {'falf vs alf'}, labelidxs,bandlabels, mrlabelidxs,mrbandlabels );
+
+
