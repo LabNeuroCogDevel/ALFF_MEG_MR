@@ -1,3 +1,5 @@
+% Run data through test/retest
+
 trmrts = readTestRetest();
 ids=cellfun(@str2double,{trmrts.id});
 checks = [ ...
@@ -9,30 +11,39 @@ checks = [ ...
 ];
 if ~all(checks); stop('bad test retest data!'); end
 
-[MRfft_org,mr_freq]=spectrumMR(trmrts,'fft');
+[trMRfft,mr_freq]=spectrumMR(trmrts,'fft');
 
+% how to group frequences
 calcbands=@(x) [x(1:(end-1)); x(2:end) ]';
 mrbands=calcbands([ .001 .004 .007 10.^[-2:.25:-.25] ]);
 
-nbands=size(mrbands,1);
-nrois=size(MRfft_org,2);
+% calcluate all fluctuations
+flux1  = calc_allflux(trMRfft(:,:,1:2:end) ,mr_freq,mrbands,{});
+flux2  = calc_allflux(trMRfft(:,:,2:2:end),mr_freq,mrbands,{}) ;
 
+% calc correlations between flux
+computelist={'falf','alf','hpfalf','alf_all','falf_all','hpfalf_all'};
+tr_allcorrs = calc_corrs(flux1,flux2,computelist,computelist);
 
-llf.trmr1 = calc_allflux( MRfft_org(:,:,1:2:end), mr_freq,mrbands,[] );
-llf.trmr2 = calc_allflux( MRfft_org(:,:,2:2:end), mr_freq,mrbands,[] );
+% 2d corr plot
+roicorr = [ tr_allcorrs.alf.alf, tr_allcorrs.falf.falf, tr_allcorrs.hpfalf.hpfalf];
+roicorlab= {'alff','falff','hpfalff'};
+plot_2dcorr(roicorr,roicorlab);
+title('test retest network by method')
 
+% labels
+mrbandlabels=cellfun(@(x) sprintf('%02.03f',x) ,num2cell(mean(mrbands,2)),'UniformOutput',0);
+mrlabelidxs=1:length(mrbandlabels);
 
-cs=struct();
-for fn=fieldnames(llf.trmr1)
-    for roii=1:nroi
-     for bi = 1:nbands
-        d1= llf.trmr1.(fn{1})(:,roii,bi);
-        if ndims(d1)==3, nbands2=nbands; else nbands2=1; end
-        for bj=1:nbands2
-          d2=llf.trmr2.(fn{1})(:,roii,bj);
-          
-          
-        end
-     end
-    end
-end
+% plot lines
+tr_linedata= {tr_allcorrs.alf.alf_all, tr_allcorrs.falf.falf_all, tr_allcorrs.hpfalf.hpfalf_all};
+tr_line_legend={'alff','falff','hpfalff'};
+plot_roi_band(tr_linedata,tr_line_legend,mrbands)
+% plotmat
+plotdata_mats = { tr_allcorrs.hpfalf_all.hpfalf_all, tr_allcorrs.alf_all.alf_all,tr_allcorrs.falf_all.falf_all};
+plotlabel_mats = { 'hpalffbands'                    ,           'alffbands'      ,        'falffbands'           };
+plot_band_band_roi( plotdata_mats, plotlabel_mats, mrlabelidxs-1,mrbandlabels, mrlabelidxs,mrbandlabels );
+
+plotdata_mats = {  tr_allcorrs.alf_all.alf_all};
+plotlabel_mats = { 'alfbands'  };
+plot_band_band_roi( plotdata_mats, plotlabel_mats, mrlabelidxs-1,mrbandlabels, mrlabelidxs,mrbandlabels );

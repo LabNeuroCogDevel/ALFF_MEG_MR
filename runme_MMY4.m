@@ -3,6 +3,7 @@
 %% read in data
 mrts=readMR();
 %mrts=readMR('/Volumes/Zeus/ALFF/full/subjs/*/fALFF/DM_Y7_3mm_roistats.txt');
+%mrts=readMR('/Volumes/Zeus/ALFF/full/subjs/*/fALFF/simpmot_Y7_3mm_roistats.txt');
 
 
 [MRfft_org,mr_freq]=spectrumMR(mrts,'fft');
@@ -10,36 +11,11 @@ mrts=readMR();
 meg=load('/Volumes/Zeus/meg/MMY4_rest/MEGTimeSeries.mat');
 [MEGfft_org, meg_freq]=spectrumMEG(meg.MEGTimeSeries);
 
-
-%% order by id, remove missing subject
 megid = [ meg.MEGTimeSeries{:,1} ];
-mrid  = [cellfun( @(x) str2num(x), {mrts.id}) ];
-
-[megid_sort,megsubjidx] = sort(megid);
-[mrid_sort,mrsubjidx]   = sort(mrid);
-
-% remove missing meg from mr -- so both match 
-missingmeg = setdiff(mrid_sort,megid_sort); % 11405
-mrkeep     = mrid_sort~=missingmeg;       % not index 47 when sorted
-
-MEGfft = MEGfft_org(:,:,megsubjidx);
-MRfft  = MRfft_org (:,:,mrsubjidx(mrkeep) );
-% make time by roi by subj
-MEGfft_matchdim  = permute( MEGfft, [2,1,3] );
+mrid  = [cellfun( @(x) str2double(x), {mrts.id}) ];
+[mrdata_good,megdata_good ] = matchMRMEG(MRfft_org,MEGfft_org.mrid,megid);
 
 
-% this is what we want formated in the same way
-mrdata= MRfft;
-megdata=MEGfft_matchdim;
-
-% but we data missing in MEG
-badmeg = squeeze(all(all(megdata == 0)));
-badmr  = squeeze(all(all(mrdata == 0)));
-good_subjs_idx = ~badmeg & ~badmr;
-
-% finally data taht is good
-mrdata_good =mrdata (:,:,good_subjs_idx);
-megdata_good=megdata(:,:,good_subjs_idx);
 
 %% create bands
 
@@ -52,15 +28,29 @@ mrbands  =calcbands([ .001 .004 .007 10.^[-2:.25:-.25] ]);
 
 mrflux   = calc_allflux(mrdata_good ,mr_freq,mrbands,{});
 megflux  = calc_allflux(megdata_good,meg_freq,meg_bands,{'alf_all'}); %,'falf_all'}); -- dont need falf_all
-
 allcorrs = calc_corrs(mrflux,megflux,{},{'alf_all'});
 
+
+
+
 %% plot
-mr_line_legend={'falff /(s+g+f)'     ,'alff g/1'          ,'hpfalff g/(g+f)'     ,'freqrat (s+g)/(g+f)'   };
-plotdata      ={allcorrs.falf.alf_all,allcorrs.alf.alf_all,allcorrs.hpalf.alf_all,allcorrs.freqrat.alf_all};
+%roilabels={'Visual','Somatomotor','Dorsal Attention','Ventral Attention', 'Limbic','Frontoparietal','Default'};
+
+% line plot
+mr_line_legend={'falff /(s+g+f)'     ,'alff g/1'          ,'hpfalff g/(g+f)'      ,'freqrat (s+g)/(g+f)'   };
+plotdata      ={allcorrs.falf.alf_all,allcorrs.alf.alf_all,allcorrs.hpfalf.alf_all,allcorrs.freqrat.alf_all};
 plot_roi_band(plotdata,mr_line_legend,meg_bands)
 
-plotdata_mats = { allcorrs.hpalf_all.alf_all, corr_meg_mr_alf,corr_meg_mr_falf};
+% labels
+bandlabels=cellfun(@(x) sprintf('%02.02f',x) ,num2cell(mean(meg_bands,2)),'UniformOutput',0);
+labelintv=2;
+labelidxs=0:labelintv:length(bandlabels)-1;
+
+mrbandlabels=cellfun(@(x) sprintf('%02.03f',x) ,num2cell(mean(mrbands,2)),'UniformOutput',0);
+mrlabelidxs=1:length(mrbandlabels);
+
+% a bunch of mat plots
+plotdata_mats = { allcorrs.hpfalf_all.alf_all, allcorrs.alf_all.alf_all,allcorrs.falf_all.alf_all};
 plotlabel_mats = { 'hpalf vs meg alf', 'meg vs mr alf','mr falf vs meg alf'};
 plot_band_band_roi( plotdata_mats, plotlabel_mats, labelidxs,bandlabels, mrlabelidxs,mrbandlabels );
 

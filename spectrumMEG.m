@@ -1,11 +1,12 @@
-function [bilat_winavg, f] = spectrumMEG( MEGTimeSeries )
+function [bilat_winavg, f] = spectrumMEG( MEGTimeSeries,bin_time )
 %SPECTRUMMEG  calcualte power spectrum of MEG data (pwelch, copied from SM 2016)
 % calculate power spectrum over intervals of bin_time for total_time (assuming sampfreq)
 % return matrix: roi x windownumber x freq x Sub
 
 sampfreq      = 250; % per second, "raw" data
 %bin_time      = 10;  % seconds, break up the data into 10s bins -- have image of this, but cannot estimate low freq (b/c powerspectrum has fewer samples)
-bin_time      = 260;  % seconds, use all the data
+%bin_time      = 260;  % seconds, use all the data
+if isempty(bin_time); bin_time=260; end
 total_time    = 260; % seconds, dont use more than 260s of data
 
 total_samples = total_time*sampfreq; % 65000
@@ -28,7 +29,7 @@ for Sub = 1:size(MEGTimeSeries,1)
       total_used_samples=floor(subj_samples/samples_in_bin)*samples_in_bin;
     end
     % lateral version of Yeo7 
-    for roi = 1:14,
+    for roi = 1:14
         % clear pxx f pxxrel x
 
         % go through time (by sample) in 2500 chunks (10s bins)

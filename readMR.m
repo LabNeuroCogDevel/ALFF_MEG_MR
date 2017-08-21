@@ -23,7 +23,7 @@ function mrts=readMR(varargin)
  %% find all roistat files
  % files=strsplit(ls(patt),'\n');
  % sometimes there are 3 per row! this deals with that
- files= cellfun(@(x) strsplit(x,' '), strsplit(ls(patt),'\n'),'UniformOutput',0);
+ files= cellfun(@(x) strsplit(x,'[ \t]','CollapseDelimiters',1,'DelimiterType','RegularExpression'), strsplit(ls(patt),'\n'),'UniformOutput',0);
  % unnest
  files=[files{:}];
  
